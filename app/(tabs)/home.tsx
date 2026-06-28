@@ -2,7 +2,6 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   FlatList,
@@ -43,14 +42,13 @@ export default function Home() {
       </View>
 
       {/* Search */}
-      <View style={styles.searchContainer}>
+      <TouchableOpacity
+        style={styles.searchContainer}
+        onPress={() => router.push("/(stack)/search")}
+      >
         <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products..."
-          placeholderTextColor={Colors.light.subtext}
-        />
-      </View>
+        <Text style={styles.searchPlaceholder}>Search products...</Text>
+      </TouchableOpacity>
 
       {/* Banner */}
       <View style={styles.banner}>
@@ -89,6 +87,7 @@ export default function Home() {
               router.push({
                 pathname: "/(stack)/product-detail",
                 params: {
+                  id: item.id,
                   name: item.name,
                   price: item.price,
                   rating: item.rating,
@@ -138,17 +137,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 12,
     paddingHorizontal: 16,
+    paddingVertical: 14,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
   searchIcon: { fontSize: 18, marginRight: 8 },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: Colors.light.text,
-  },
+  searchPlaceholder: { fontSize: 16, color: Colors.light.subtext },
   banner: {
     backgroundColor: Colors.light.primary,
     marginHorizontal: 20,
