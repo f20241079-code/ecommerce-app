@@ -4,13 +4,29 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/colors";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductDetail() {
-  const { name, price, rating, icon } = useLocalSearchParams();
+  const { name, price, rating, icon, id } = useLocalSearchParams();
   const router = useRouter();
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: id as string,
+      name: name as string,
+      price: Number(price),
+      icon: icon as string,
+    });
+    Alert.alert("Success", `${name} added to cart!`, [
+      { text: "Continue Shopping", style: "cancel" },
+      { text: "View Cart", onPress: () => router.push("/(tabs)/cart") },
+    ]);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -33,7 +49,7 @@ export default function ProductDetail() {
           <TouchableOpacity style={styles.wishlistBtn}>
             <Text style={styles.wishlistText}>❤️ Wishlist</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cartBtn}>
+          <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
             <Text style={styles.cartText}>🛒 Add to Cart</Text>
           </TouchableOpacity>
         </View>
