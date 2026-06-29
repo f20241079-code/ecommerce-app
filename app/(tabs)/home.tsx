@@ -7,7 +7,7 @@ import {
   FlatList,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors } from "@/constants/colors";
+import { useTheme } from "@/context/ThemeContext";
 
 const categories = [
   { id: "1", name: "Electronics", icon: "📱" },
@@ -27,37 +27,34 @@ const products = [
 
 export default function Home() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good Morning 👋</Text>
-          <Text style={styles.name}>Find your product</Text>
+          <Text style={[styles.greeting, { color: colors.subtext }]}>Good Morning 👋</Text>
+          <Text style={[styles.name, { color: colors.text }]}>Find your product</Text>
         </View>
-        <TouchableOpacity style={styles.notifButton}>
+        <TouchableOpacity style={[styles.notifButton, { backgroundColor: colors.card }]}>
           <Text style={{ fontSize: 24 }}>🔔</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Search */}
       <TouchableOpacity
-        style={styles.searchContainer}
+        style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}
         onPress={() => router.push("/(stack)/search")}
       >
         <Text style={styles.searchIcon}>🔍</Text>
-        <Text style={styles.searchPlaceholder}>Search products...</Text>
+        <Text style={[styles.searchPlaceholder, { color: colors.subtext }]}>Search products...</Text>
       </TouchableOpacity>
 
-      {/* Banner */}
-      <View style={styles.banner}>
+      <View style={[styles.banner, { backgroundColor: colors.primary }]}>
         <Text style={styles.bannerText}>🛍️ Big Sale!</Text>
         <Text style={styles.bannerSubtext}>Up to 50% off on electronics</Text>
       </View>
 
-      {/* Categories */}
-      <Text style={styles.sectionTitle}>Categories</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Categories</Text>
       <FlatList
         data={categories}
         horizontal
@@ -65,15 +62,14 @@ export default function Home() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.categoriesList}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.categoryItem}>
+          <TouchableOpacity style={[styles.categoryItem, { backgroundColor: colors.card }]}>
             <Text style={styles.categoryIcon}>{item.icon}</Text>
-            <Text style={styles.categoryName}>{item.name}</Text>
+            <Text style={[styles.categoryName, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
         )}
       />
 
-      {/* Featured Products */}
-      <Text style={styles.sectionTitle}>Featured Products</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Products</Text>
       <FlatList
         data={products}
         horizontal
@@ -82,7 +78,7 @@ export default function Home() {
         contentContainerStyle={styles.productsList}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.productCard}
+            style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() =>
               router.push({
                 pathname: "/(stack)/product-detail",
@@ -97,9 +93,9 @@ export default function Home() {
             }
           >
             <Text style={styles.productIcon}>{item.icon}</Text>
-            <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productPrice}>${item.price}</Text>
-            <Text style={styles.productRating}>⭐ {item.rating}</Text>
+            <Text style={[styles.productName, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.productPrice, { color: colors.primary }]}>${item.price}</Text>
+            <Text style={[styles.productRating, { color: colors.subtext }]}>⭐ {item.rating}</Text>
           </TouchableOpacity>
         )}
       />
@@ -108,91 +104,26 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-    paddingTop: 50,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  greeting: { fontSize: 14, color: Colors.light.subtext },
-  name: { fontSize: 22, fontWeight: "bold", color: Colors.light.text },
-  notifButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.light.card,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.light.card,
-    marginHorizontal: 20,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
+  container: { flex: 1, paddingTop: 50 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 20 },
+  greeting: { fontSize: 14 },
+  name: { fontSize: 22, fontWeight: "bold" },
+  notifButton: { width: 44, height: 44, borderRadius: 22, justifyContent: "center", alignItems: "center" },
+  searchContainer: { flexDirection: "row", alignItems: "center", marginHorizontal: 20, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20, borderWidth: 1 },
   searchIcon: { fontSize: 18, marginRight: 8 },
-  searchPlaceholder: { fontSize: 16, color: Colors.light.subtext },
-  banner: {
-    backgroundColor: Colors.light.primary,
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-  },
+  searchPlaceholder: { fontSize: 16 },
+  banner: { marginHorizontal: 20, borderRadius: 16, padding: 20, marginBottom: 24 },
   bannerText: { fontSize: 24, fontWeight: "bold", color: "#fff" },
   bannerSubtext: { fontSize: 14, color: "#fff", opacity: 0.9, marginTop: 4 },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.light.text,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 12 },
   categoriesList: { paddingHorizontal: 20, marginBottom: 24 },
-  categoryItem: {
-    alignItems: "center",
-    marginRight: 16,
-    backgroundColor: Colors.light.card,
-    padding: 12,
-    borderRadius: 12,
-    width: 80,
-  },
+  categoryItem: { alignItems: "center", marginRight: 16, padding: 12, borderRadius: 12, width: 80 },
   categoryIcon: { fontSize: 28, marginBottom: 4 },
-  categoryName: { fontSize: 11, color: Colors.light.text, textAlign: "center" },
+  categoryName: { fontSize: 11, textAlign: "center" },
   productsList: { paddingHorizontal: 20, marginBottom: 24 },
-  productCard: {
-    backgroundColor: Colors.light.card,
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 16,
-    width: 160,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
+  productCard: { borderRadius: 16, padding: 16, marginRight: 16, width: 160, borderWidth: 1 },
   productIcon: { fontSize: 48, marginBottom: 8 },
-  productName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: Colors.light.text,
-    marginBottom: 4,
-  },
-  productPrice: {
-    fontSize: 16,
-    color: Colors.light.primary,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  productRating: { fontSize: 12, color: Colors.light.subtext },
+  productName: { fontSize: 14, fontWeight: "bold", marginBottom: 4 },
+  productPrice: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
+  productRating: { fontSize: 12 },
 });
