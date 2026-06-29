@@ -7,13 +7,18 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Colors } from "@/constants/colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function ProductDetail() {
   const { name, price, rating, icon, id } = useLocalSearchParams();
   const router = useRouter();
+  const { colors } = useTheme();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  const inWishlist = isInWishlist(id as string);
 
   const handleAddToCart = () => {
     addToCart({
@@ -28,28 +33,56 @@ export default function ProductDetail() {
     ]);
   };
 
+  const handleWishlist = () => {
+    if (inWishlist) {
+      removeFromWishlist(id as string);
+    } else {
+      addToWishlist({
+        id: id as string,
+        name: name as string,
+        price: Number(price),
+        rating: Number(rating),
+        icon: icon as string,
+      });
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.imageContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.imageContainer, { backgroundColor: colors.card }]}>
         <Text style={styles.productIcon}>{icon}</Text>
       </View>
 
       <View style={styles.details}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.rating}>⭐ {rating}</Text>
-        <Text style={styles.price}>${price}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
+        <Text style={[styles.rating, { color: colors.subtext }]}>⭐ {rating}</Text>
+        <Text style={[styles.price, { color: colors.primary }]}>${price}</Text>
 
-        <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.description}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Description</Text>
+        <Text style={[styles.description, { color: colors.subtext }]}>
           This is a premium quality product with excellent features and
           durability. Perfect for everyday use and comes with a 1 year warranty.
         </Text>
 
         <View style={styles.buttons}>
-          <TouchableOpacity style={styles.wishlistBtn}>
-            <Text style={styles.wishlistText}>❤️ Wishlist</Text>
+          <TouchableOpacity
+            style={[
+              styles.wishlistBtn,
+              {
+                borderColor: inWishlist ? colors.error : colors.primary,
+                backgroundColor: inWishlist ? "#FFF0F0" : "transparent",
+              },
+            ]}
+            onPress={handleWishlist}
+          >
+            <Text style={[styles.wishlistText, { color: inWishlist ? colors.error : colors.primary }]}>
+              {inWishlist ? "❤️ Wishlisted" : "🤍 Wishlist"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
+          <TouchableOpacity
+            style={[styles.cartBtn, { backgroundColor: colors.primary }]}
+            onPress={handleAddToCart}
+          >
             <Text style={styles.cartText}>🛒 Add to Cart</Text>
           </TouchableOpacity>
         </View>
@@ -59,35 +92,18 @@ export default function ProductDetail() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background },
-  imageContainer: {
-    backgroundColor: Colors.light.card,
-    alignItems: "center",
-    paddingVertical: 40,
-  },
+  container: { flex: 1 },
+  imageContainer: { alignItems: "center", paddingVertical: 40 },
   productIcon: { fontSize: 100 },
   details: { padding: 20 },
-  name: { fontSize: 24, fontWeight: "bold", color: Colors.light.text, marginBottom: 8 },
-  rating: { fontSize: 16, color: Colors.light.subtext, marginBottom: 8 },
-  price: { fontSize: 28, fontWeight: "bold", color: Colors.light.primary, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: Colors.light.text, marginBottom: 8 },
-  description: { fontSize: 14, color: Colors.light.subtext, lineHeight: 22, marginBottom: 24 },
+  name: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
+  rating: { fontSize: 16, marginBottom: 8 },
+  price: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  description: { fontSize: 14, lineHeight: 22, marginBottom: 24 },
   buttons: { flexDirection: "row", gap: 12 },
-  wishlistBtn: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.light.primary,
-  },
-  wishlistText: { color: Colors.light.primary, fontWeight: "bold" },
-  cartBtn: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    backgroundColor: Colors.light.primary,
-  },
+  wishlistBtn: { flex: 1, padding: 16, borderRadius: 12, alignItems: "center", borderWidth: 1 },
+  wishlistText: { fontWeight: "bold" },
+  cartBtn: { flex: 1, padding: 16, borderRadius: 12, alignItems: "center" },
   cartText: { color: "#fff", fontWeight: "bold" },
 });

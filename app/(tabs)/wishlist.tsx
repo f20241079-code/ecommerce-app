@@ -8,23 +8,34 @@ import {
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
-
-const wishlistItems = [
-  { id: "1", name: "MacBook Pro", price: 1999, rating: 4.9, icon: "💻" },
-  { id: "2", name: "Sony Headphones", price: 299, rating: 4.7, icon: "🎧" },
-  { id: "3", name: "Samsung TV", price: 799, rating: 4.6, icon: "📺" },
-];
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function Wishlist() {
   const { colors } = useTheme();
   const { addToCart } = useCart();
+  const { items, removeFromWishlist } = useWishlist();
   const router = useRouter();
+
+  if (items.length === 0) {
+    return (
+      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+        <Text style={styles.emptyIcon}>❤️</Text>
+        <Text style={[styles.emptyText, { color: colors.text }]}>Your wishlist is empty!</Text>
+        <TouchableOpacity
+          style={[styles.shopBtn, { backgroundColor: colors.primary }]}
+          onPress={() => router.push("/(tabs)/home")}
+        >
+          <Text style={styles.shopBtnText}>Start Shopping</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>My Wishlist ❤️</Text>
       <FlatList
-        data={wishlistItems}
+        data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
@@ -63,7 +74,10 @@ export default function Wishlist() {
               >
                 <Text style={styles.addToCartText}>Add to Cart</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.removeBtn}>
+              <TouchableOpacity
+                style={styles.removeBtn}
+                onPress={() => removeFromWishlist(item.id)}
+              >
                 <Text style={styles.removeText}>🗑️</Text>
               </TouchableOpacity>
             </View>
@@ -76,6 +90,11 @@ export default function Wishlist() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50 },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyIcon: { fontSize: 80, marginBottom: 16 },
+  emptyText: { fontSize: 20, fontWeight: "bold", marginBottom: 24 },
+  shopBtn: { paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
+  shopBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   title: { fontSize: 24, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 20 },
   list: { paddingHorizontal: 20 },
   card: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1 },
