@@ -7,14 +7,20 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors } from "@/constants/colors";
+import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { sendLocalNotification } from "@/lib/notifications";
 
 export default function Checkout() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { items, total, clearCart } = useCart();
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    await sendLocalNotification(
+      "Order Placed! 🎉",
+      `Your order of $${total + 5} has been placed successfully!`
+    );
     Alert.alert(
       "Order Placed! 🎉",
       "Your order has been placed successfully!",
@@ -31,59 +37,58 @@ export default function Checkout() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Checkout</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Checkout</Text>
 
-      {/* Order Summary */}
-      <Text style={styles.sectionTitle}>Order Summary</Text>
-      <View style={styles.card}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Order Summary</Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {items.map((item) => (
           <View key={item.id} style={styles.orderItem}>
             <Text style={styles.orderIcon}>{item.icon}</Text>
-            <Text style={styles.orderName}>{item.name}</Text>
-            <Text style={styles.orderQty}>x{item.quantity}</Text>
-            <Text style={styles.orderPrice}>${item.price * item.quantity}</Text>
+            <Text style={[styles.orderName, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.orderQty, { color: colors.subtext }]}>x{item.quantity}</Text>
+            <Text style={[styles.orderPrice, { color: colors.primary }]}>${item.price * item.quantity}</Text>
           </View>
         ))}
       </View>
 
-      {/* Delivery Address */}
-      <Text style={styles.sectionTitle}>Delivery Address</Text>
-      <View style={styles.card}>
-        <Text style={styles.addressText}>📍 123 Main Street</Text>
-        <Text style={styles.addressSubText}>New York, NY 10001</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Delivery Address</Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.addressText, { color: colors.text }]}>📍 123 Main Street</Text>
+        <Text style={[styles.addressSubText, { color: colors.subtext }]}>New York, NY 10001</Text>
         <TouchableOpacity>
-          <Text style={styles.changeText}>Change Address</Text>
+          <Text style={[styles.changeText, { color: colors.primary }]}>Change Address</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Payment Method */}
-      <Text style={styles.sectionTitle}>Payment Method</Text>
-      <View style={styles.card}>
-        <Text style={styles.addressText}>💳 Credit Card</Text>
-        <Text style={styles.addressSubText}>**** **** **** 1234</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.addressText, { color: colors.text }]}>💳 Credit Card</Text>
+        <Text style={[styles.addressSubText, { color: colors.subtext }]}>**** **** **** 1234</Text>
         <TouchableOpacity>
-          <Text style={styles.changeText}>Change Payment</Text>
+          <Text style={[styles.changeText, { color: colors.primary }]}>Change Payment</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Total */}
-      <View style={styles.totalCard}>
+      <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>${total}</Text>
+          <Text style={[styles.totalLabel, { color: colors.subtext }]}>Subtotal</Text>
+          <Text style={[styles.totalValue, { color: colors.text }]}>${total}</Text>
         </View>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Delivery</Text>
-          <Text style={styles.totalValue}>$5</Text>
+          <Text style={[styles.totalLabel, { color: colors.subtext }]}>Delivery</Text>
+          <Text style={[styles.totalValue, { color: colors.text }]}>$5</Text>
         </View>
-        <View style={[styles.totalRow, styles.grandTotalRow]}>
-          <Text style={styles.grandTotalLabel}>Total</Text>
-          <Text style={styles.grandTotalValue}>${total + 5}</Text>
+        <View style={[styles.grandTotalRow, { borderTopColor: colors.border }]}>
+          <Text style={[styles.grandTotalLabel, { color: colors.text }]}>Total</Text>
+          <Text style={[styles.grandTotalValue, { color: colors.primary }]}>${total + 5}</Text>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.orderBtn} onPress={handlePlaceOrder}>
+      <TouchableOpacity
+        style={[styles.orderBtn, { backgroundColor: colors.primary }]}
+        onPress={handlePlaceOrder}
+      >
         <Text style={styles.orderBtnText}>Place Order 🎉</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -91,25 +96,25 @@ export default function Checkout() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.light.background, paddingTop: 50 },
-  title: { fontSize: 24, fontWeight: "bold", color: Colors.light.text, paddingHorizontal: 20, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: Colors.light.text, paddingHorizontal: 20, marginBottom: 8 },
-  card: { backgroundColor: Colors.light.card, marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: Colors.light.border },
+  container: { flex: 1, paddingTop: 50 },
+  title: { fontSize: 24, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 8 },
+  card: { marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
   orderItem: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
   orderIcon: { fontSize: 24, marginRight: 8 },
-  orderName: { flex: 1, fontSize: 14, color: Colors.light.text },
-  orderQty: { fontSize: 14, color: Colors.light.subtext, marginRight: 8 },
-  orderPrice: { fontSize: 14, fontWeight: "bold", color: Colors.light.primary },
-  addressText: { fontSize: 16, fontWeight: "bold", color: Colors.light.text, marginBottom: 4 },
-  addressSubText: { fontSize: 14, color: Colors.light.subtext, marginBottom: 8 },
-  changeText: { color: Colors.light.primary, fontWeight: "bold" },
-  totalCard: { backgroundColor: Colors.light.card, marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: Colors.light.border },
+  orderName: { flex: 1, fontSize: 14 },
+  orderQty: { fontSize: 14, marginRight: 8 },
+  orderPrice: { fontSize: 14, fontWeight: "bold" },
+  addressText: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
+  addressSubText: { fontSize: 14, marginBottom: 8 },
+  changeText: { fontWeight: "bold" },
+  totalCard: { marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
   totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  totalLabel: { fontSize: 14, color: Colors.light.subtext },
-  totalValue: { fontSize: 14, color: Colors.light.text },
-  grandTotalRow: { borderTopWidth: 1, borderTopColor: Colors.light.border, paddingTop: 8, marginTop: 4 },
-  grandTotalLabel: { fontSize: 18, fontWeight: "bold", color: Colors.light.text },
-  grandTotalValue: { fontSize: 18, fontWeight: "bold", color: Colors.light.primary },
-  orderBtn: { backgroundColor: Colors.light.primary, margin: 20, padding: 16, borderRadius: 12, alignItems: "center", marginBottom: 40 },
+  totalLabel: { fontSize: 14 },
+  totalValue: { fontSize: 14 },
+  grandTotalRow: { flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, paddingTop: 8, marginTop: 4 },
+  grandTotalLabel: { fontSize: 18, fontWeight: "bold" },
+  grandTotalValue: { fontSize: 18, fontWeight: "bold" },
+  orderBtn: { margin: 20, padding: 16, borderRadius: 12, alignItems: "center", marginBottom: 40 },
   orderBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });

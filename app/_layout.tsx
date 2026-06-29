@@ -5,12 +5,14 @@ import * as SplashScreen from "expo-splash-screen";
 import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { registerForPushNotifications } from "@/lib/notifications";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+    registerForPushNotifications();
   }, []);
 
   return (
