@@ -93,8 +93,11 @@ export default function Profile() {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>🚪 Logout</Text>
+      <TouchableOpacity
+        style={[styles.logoutBtn, { backgroundColor: colors.card, borderColor: colors.error }]}
+        onPress={handleLogout}
+      >
+        <Text style={[styles.logoutText, { color: colors.error }]}>🚪 Logout</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -117,6 +120,6 @@ const styles = StyleSheet.create({
   menuIcon: { fontSize: 20, marginRight: 12 },
   menuLabel: { flex: 1, fontSize: 16 },
   menuArrow: { fontSize: 20 },
-  logoutBtn: { marginHorizontal: 20, marginBottom: 40, backgroundColor: "#FFF0F0", padding: 16, borderRadius: 12, alignItems: "center", borderWidth: 1, borderColor: "#FFD0D0" },
-  logoutText: { color: "#FF3B30", fontSize: 16, fontWeight: "bold" },
+  logoutBtn: { marginHorizontal: 20, marginBottom: 40, padding: 16, borderRadius: 12, alignItems: "center", borderWidth: 1 },
+  logoutText: { fontSize: 16, fontWeight: "bold" },
 });
