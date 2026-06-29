@@ -19,6 +19,7 @@ export default function StackLayout() {
       <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
       <Stack.Screen name="edit-profile" options={{ title: "Edit Profile" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="category" options={{ title: "Category" }} />
     </Stack>
   );
 }

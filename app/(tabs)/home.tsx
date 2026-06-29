@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -62,7 +63,15 @@ export default function Home() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.categoriesList}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.categoryItem, { backgroundColor: colors.card }]}>
+          <TouchableOpacity
+            style={[styles.categoryItem, { backgroundColor: colors.card }]}
+            onPress={() =>
+              router.push({
+                pathname: "/(stack)/category",
+                params: { name: item.name },
+              })
+            }
+          >
             <Text style={styles.categoryIcon}>{item.icon}</Text>
             <Text style={[styles.categoryName, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
