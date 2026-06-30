@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -26,9 +27,20 @@ export default function Profile() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    const fetchUser = () => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setUser(user);
+      });
+    };
+    fetchUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      fetchUser();
     });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -50,12 +62,18 @@ export default function Profile() {
     return name.charAt(0).toUpperCase();
   };
 
+  const avatarUrl = user?.user_metadata?.avatar_url;
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-          <Text style={styles.avatarText}>{getInitials()}</Text>
-        </View>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+        ) : (
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.avatarText}>{getInitials()}</Text>
+          </View>
+        )}
         <Text style={[styles.name, { color: colors.text }]}>
           {user?.user_metadata?.full_name || "User"}
         </Text>
@@ -107,6 +125,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50 },
   header: { alignItems: "center", paddingVertical: 24 },
   avatar: { width: 80, height: 80, borderRadius: 40, justifyContent: "center", alignItems: "center", marginBottom: 12 },
+  avatarImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 12 },
   avatarText: { fontSize: 32, color: "#fff", fontWeight: "bold" },
   name: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
   email: { fontSize: 14 },
