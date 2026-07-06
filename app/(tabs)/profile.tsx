@@ -1,30 +1,41 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  Image,
-} from "react-native";
+import { useTheme } from "@/context/ThemeContext";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useTheme } from "@/context/ThemeContext";
-
-const menuItems = [
-  { id: "1", icon: "📦", label: "Order History", route: "/(stack)/order-history" },
-  { id: "2", icon: "📍", label: "Address Management", route: "/(stack)/addresses" },
-  { id: "3", icon: "✏️", label: "Edit Profile", route: "/(stack)/edit-profile" },
-  { id: "4", icon: "🔔", label: "Notifications", route: null },
-  { id: "5", icon: "⚙️", label: "Settings", route: "/(stack)/settings" },
-  { id: "6", icon: "❓", label: "Help & Support", route: null },
-];
+import {
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function Profile() {
   const router = useRouter();
   const { colors } = useTheme();
   const [user, setUser] = useState<any>(null);
+
+  const handleNotifications = () => {
+    router.push("/(stack)/settings");
+  };
+
+  const handleHelpSupport = () => {
+    Alert.alert(
+      "Help & Support",
+      "Need help with your order or account?\n\nEmail: support@shoply.app\nPhone: +1-800-555-0199"
+    );
+  };
+
+  const menuItems = [
+    { id: "1", icon: "📦", label: "Order History", route: "/(stack)/order-history" },
+    { id: "2", icon: "📍", label: "Address Management", route: "/(stack)/addresses" },
+    { id: "3", icon: "✏️", label: "Edit Profile", route: "/(stack)/edit-profile" },
+    { id: "4", icon: "🔔", label: "Notifications", onPress: handleNotifications },
+    { id: "5", icon: "⚙️", label: "Settings", route: "/(stack)/settings" },
+    { id: "6", icon: "❓", label: "Help & Support", onPress: handleHelpSupport },
+  ];
 
   useEffect(() => {
     const fetchUser = () => {
@@ -102,7 +113,13 @@ export default function Profile() {
           <TouchableOpacity
             key={item.id}
             style={[styles.menuItem, { borderBottomColor: colors.border }]}
-            onPress={() => item.route && router.push(item.route as any)}
+            onPress={() => {
+              if (item.onPress) {
+                item.onPress();
+              } else if (item.route) {
+                router.push(item.route as any);
+              }
+            }}
           >
             <Text style={styles.menuIcon}>{item.icon}</Text>
             <Text style={[styles.menuLabel, { color: colors.text }]}>{item.label}</Text>
@@ -123,22 +140,22 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50 },
-  header: { alignItems: "center", paddingVertical: 24 },
-  avatar: { width: 80, height: 80, borderRadius: 40, justifyContent: "center", alignItems: "center", marginBottom: 12 },
-  avatarImage: { width: 80, height: 80, borderRadius: 40, marginBottom: 12 },
+  heroCard: { alignItems: "center", paddingVertical: 24, marginHorizontal: 20, borderRadius: 24, borderWidth: 1, marginBottom: 18, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  avatar: { width: 86, height: 86, borderRadius: 43, justifyContent: "center", alignItems: "center", marginBottom: 12 },
+  avatarImage: { width: 86, height: 86, borderRadius: 43, marginBottom: 12 },
   avatarText: { fontSize: 32, color: "#fff", fontWeight: "bold" },
   name: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
   email: { fontSize: 14 },
-  statsRow: { flexDirection: "row", marginHorizontal: 20, borderRadius: 16, padding: 20, marginBottom: 24, borderWidth: 1 },
+  statsRow: { flexDirection: "row", marginHorizontal: 20, borderRadius: 18, padding: 20, marginBottom: 24, borderWidth: 1 },
   stat: { flex: 1, alignItems: "center" },
   statNumber: { fontSize: 22, fontWeight: "bold" },
   statLabel: { fontSize: 12, marginTop: 4 },
   statDivider: { width: 1 },
-  menu: { marginHorizontal: 20, borderRadius: 16, borderWidth: 1, marginBottom: 24 },
+  menu: { marginHorizontal: 20, borderRadius: 18, borderWidth: 1, marginBottom: 24 },
   menuItem: { flexDirection: "row", alignItems: "center", padding: 16, borderBottomWidth: 1 },
   menuIcon: { fontSize: 20, marginRight: 12 },
   menuLabel: { flex: 1, fontSize: 16 },
   menuArrow: { fontSize: 20 },
-  logoutBtn: { marginHorizontal: 20, marginBottom: 40, padding: 16, borderRadius: 12, alignItems: "center", borderWidth: 1 },
+  logoutBtn: { marginHorizontal: 20, marginBottom: 40, padding: 16, borderRadius: 14, alignItems: "center", borderWidth: 1 },
   logoutText: { fontSize: 16, fontWeight: "bold" },
 });
