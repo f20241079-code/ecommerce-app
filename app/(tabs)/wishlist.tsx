@@ -1,14 +1,14 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useRouter } from "expo-router";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function Wishlist() {
   const { colors } = useTheme();
@@ -90,21 +90,23 @@ export default function Wishlist() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50 },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyIcon: { fontSize: 80, marginBottom: 16 },
-  emptyText: { fontSize: 20, fontWeight: "bold", marginBottom: 24 },
-  shopBtn: { paddingHorizontal: 32, paddingVertical: 16, borderRadius: 12 },
-  shopBtnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
+  emptyCard: { width: "100%", borderRadius: 24, borderWidth: 1, padding: 24, alignItems: "center" },
+  emptyIcon: { fontSize: 70, marginBottom: 12 },
+  emptyText: { fontSize: 20, fontWeight: "bold", marginBottom: 8 },
+  emptySubtext: { fontSize: 14, textAlign: "center", marginBottom: 20 },
+  shopBtn: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14 },
+  shopBtnText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
   title: { fontSize: 24, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 20 },
-  list: { paddingHorizontal: 20 },
-  card: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1 },
+  list: { paddingHorizontal: 20, paddingBottom: 20 },
+  card: { flexDirection: "row", alignItems: "center", borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1 },
   icon: { fontSize: 40, marginRight: 12 },
   info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
+  name: { fontSize: 15, fontWeight: "bold", marginBottom: 4 },
   rating: { fontSize: 12, marginBottom: 4 },
-  price: { fontSize: 16, fontWeight: "bold" },
+  price: { fontSize: 15, fontWeight: "bold" },
   actions: { alignItems: "center", gap: 8 },
-  addToCartBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+  addToCartBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
   addToCartText: { color: "#fff", fontSize: 12, fontWeight: "bold" },
   removeBtn: { padding: 4 },
   removeText: { fontSize: 20 },

@@ -1,5 +1,5 @@
-import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
@@ -11,9 +11,9 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications() {
-  if (!Device.isDevice) {
-    console.log("Push notifications only work on physical devices");
-    return null;
+  if (Platform.OS === "web") {
+    console.log("Push notifications are not supported in the web preview.");
+    return "web-preview";
   }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -38,10 +38,25 @@ export async function registerForPushNotifications() {
     });
   }
 
+  if (Device.isDevice || Platform.OS === "android") {
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      console.log("Expo push token:", tokenData.data);
+      return tokenData.data;
+    } catch (error) {
+      console.log("Unable to fetch Expo push token", error);
+    }
+  }
+
   return true;
 }
 
 export async function sendLocalNotification(title: string, body: string) {
+  if (Platform.OS === "web") {
+    console.log("Local notification requested on web preview:", title, body);
+    return;
+  }
+
   await Notifications.scheduleNotificationAsync({
     content: {
       title,

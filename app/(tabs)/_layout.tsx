@@ -1,5 +1,5 @@
-import { Tabs } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
+import { Tabs } from "expo-router";
 
 export default function TabsLayout() {
   const { colors } = useTheme();
@@ -15,7 +15,19 @@ export default function TabsLayout() {
           borderTopColor: colors.border,
           paddingBottom: 8,
           paddingTop: 8,
-          height: 60,
+          height: 66,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          elevation: 6,
+        },
+        tabBarItemStyle: {
+          borderRadius: 16,
+          marginHorizontal: 6,
+          paddingVertical: 4,
         },
       }}
     >
@@ -59,7 +71,7 @@ export default function TabsLayout() {
   );
 }
 
-function TabIcon({ name }: { name: string; color: string }) {
+function TabIcon({ name, color }: { name: string; color?: string }) {
   const { Text } = require("react-native");
-  return <Text style={{ fontSize: 22 }}>{name}</Text>;
+  return <Text style={{ fontSize: 22, color: color ?? "#FF6B00" }}>{name}</Text>;
 }

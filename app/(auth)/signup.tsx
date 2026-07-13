@@ -1,21 +1,22 @@
+import { useTheme } from "@/context/ThemeContext";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import { Colors } from "@/constants/colors";
 
 export default function Signup() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -34,7 +35,10 @@ export default function Signup() {
     if (error) {
       Alert.alert("Error", error.message);
     } else {
-      Alert.alert("Success", "Check your email to confirm your account!");
+      Alert.alert(
+        "Almost done",
+        "Please confirm your email before logging in. Check your inbox or spam folder."
+      );
       router.replace("/(auth)/login");
     }
   };
@@ -44,48 +48,54 @@ export default function Signup() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Create Account 🛍️</Text>
-        <Text style={styles.subtitle}>Sign up to get started</Text>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}> 
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <Text style={[styles.badge, { color: colors.primary }]}>Create Account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Start your shopping journey 🛍️</Text>
+          <Text style={[styles.subtitle, { color: colors.subtext }]}>Sign up to discover fresh picks and deals</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Full Name"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+            placeholder="Full Name"
+            placeholderTextColor={colors.subtext}
+            value={fullName}
+            onChangeText={setFullName}
+          />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+            placeholder="Email"
+            placeholderTextColor={colors.subtext}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+            placeholder="Password"
+            placeholderTextColor={colors.subtext}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleSignup}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "Creating account..." : "Sign Up"}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={handleSignup}
+            disabled={loading}
+          >
+            <Text style={[styles.buttonText, { color: colors.white }]}> 
+              {loading ? "Creating account..." : "Sign Up"}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
-          <Text style={styles.link}>
-            Already have an account?{" "}
-            <Text style={styles.linkBold}>Login</Text>
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/(auth)/login")}> 
+            <Text style={[styles.link, { color: colors.subtext }]}> 
+              Already have an account?{" "}
+              <Text style={[styles.linkBold, { color: colors.primary }]}>Login</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -96,46 +106,54 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: "center",
-    backgroundColor: Colors.light.background,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.light.text,
+  card: {
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  badge: {
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
     marginBottom: 8,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
   subtitle: {
-    fontSize: 16,
-    color: Colors.light.subtext,
-    marginBottom: 32,
+    fontSize: 15,
+    marginBottom: 24,
   },
   input: {
-    backgroundColor: Colors.light.card,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    padding: 15,
+    borderRadius: 14,
+    marginBottom: 14,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   button: {
-    backgroundColor: Colors.light.primary,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    borderRadius: 14,
     alignItems: "center",
     marginBottom: 16,
   },
   buttonText: {
-    color: Colors.light.white,
     fontSize: 16,
     fontWeight: "bold",
   },
   link: {
     textAlign: "center",
-    color: Colors.light.subtext,
   },
   linkBold: {
-    color: Colors.light.primary,
     fontWeight: "bold",
   },
 });

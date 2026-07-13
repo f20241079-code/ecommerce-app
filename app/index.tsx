@@ -1,20 +1,52 @@
-import { useEffect } from "react";
-import { useRouter } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
+import { ActivityIndicator, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const redirectToApp = async () => {
+      if (hasRedirected.current) return;
+      hasRedirected.current = true;
+
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.warn("Session check failed:", error.message);
+        router.replace("/(auth)/login");
+        return;
+      }
+
+      if (session) {
+        router.replace("/(tabs)/home");
+      } else {
+        router.replace("/(auth)/login");
+      }
+    };
+
+    redirectToApp();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (hasRedirected.current) return;
+      hasRedirected.current = true;
+
       if (session) {
         router.replace("/(tabs)/home");
       } else {
         router.replace("/(auth)/login");
       }
     });
-  }, []);
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [router]);
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

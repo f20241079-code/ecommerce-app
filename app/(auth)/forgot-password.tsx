@@ -1,20 +1,21 @@
+import { useTheme } from "@/context/ThemeContext";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import { Colors } from "@/constants/colors";
 
 export default function ForgotPassword() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,34 +36,35 @@ export default function ForgotPassword() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.container}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>← Back</Text>
-        </TouchableOpacity>
+      <View style={[styles.container, { backgroundColor: colors.background }]}> 
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={[styles.back, { color: colors.primary }]}>← Back</Text>
+          </TouchableOpacity>
 
-        <Text style={styles.title}>Forgot Password 🔐</Text>
-        <Text style={styles.subtitle}>
-          Enter your email and we'll send you a reset link
-        </Text>
+          <Text style={[styles.title, { color: colors.text }]}>Forgot Password 🔐</Text>
+          <Text style={[styles.subtitle, { color: colors.subtext }]}>Enter your email and we’ll send a reset link</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+            placeholder="Email"
+            placeholderTextColor={colors.subtext}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleReset}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "Sending..." : "Send Reset Link"}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={handleReset}
+            disabled={loading}
+          >
+            <Text style={[styles.buttonText, { color: colors.white }]}> 
+              {loading ? "Sending..." : "Send Reset Link"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -73,41 +75,44 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: "center",
-    backgroundColor: Colors.light.background,
+  },
+  card: {
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   back: {
-    color: Colors.light.primary,
     fontSize: 16,
-    marginBottom: 32,
+    marginBottom: 24,
+    fontWeight: "600",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
-    color: Colors.light.text,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: Colors.light.subtext,
-    marginBottom: 32,
+    fontSize: 15,
+    marginBottom: 24,
   },
   input: {
-    backgroundColor: Colors.light.card,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    borderRadius: 14,
     marginBottom: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: Colors.light.border,
   },
   button: {
-    backgroundColor: Colors.light.primary,
-    padding: 16,
-    borderRadius: 12,
+    padding: 15,
+    borderRadius: 14,
     alignItems: "center",
   },
   buttonText: {
-    color: Colors.light.white,
     fontSize: 16,
     fontWeight: "bold",
   },

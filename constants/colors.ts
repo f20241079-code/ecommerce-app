@@ -1,28 +1,38 @@
+export const baseColors = {
+  primary: "#FF6B00",
+  secondary: "#FF8C00",
+  background: "#FFF7F1",
+  card: "#FFFFFF",
+  text: "#1F2937",
+  subtext: "#6B7280",
+  border: "#F2E4D8",
+  error: "#EF4444",
+  success: "#10B981",
+  white: "#FFFFFF",
+  black: "#000000",
+};
+
 export const Colors = {
-  light: {
-    primary: "#FF6B00",
-    secondary: "#FF8C00",
-    background: "#FFFFFF",
-    card: "#F5F5F5",
-    text: "#1A1A1A",
-    subtext: "#666666",
-    border: "#E0E0E0",
-    error: "#FF3B30",
-    success: "#34C759",
-    white: "#FFFFFF",
-    black: "#000000",
-  },
+  light: { ...baseColors },
   dark: {
-    primary: "#FF6B00",
-    secondary: "#FF8C00",
-    background: "#1A1A1A",
-    card: "#2C2C2C",
-    text: "#FFFFFF",
-    subtext: "#AAAAAA",
-    border: "#333333",
-    error: "#FF3B30",
-    success: "#34C759",
-    white: "#FFFFFF",
-    black: "#000000",
+    ...baseColors,
+    primary: "#FF8C00",
+    secondary: "#FFB347",
+    background: "#111827",
+    card: "#1F2937",
+    text: "#F9FAFB",
+    subtext: "#9CA3AF",
+    border: "#374151",
+    error: "#F87171",
+    success: "#34D399",
   },
 };
+
+export type ThemeColors = typeof Colors.light;
+
+export function getThemeColors(theme: "light" | "dark"): ThemeColors {
+  return {
+    ...baseColors,
+    ...(theme === "dark" ? Colors.dark : Colors.light),
+  };
+}

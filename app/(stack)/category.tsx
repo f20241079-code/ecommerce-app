@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 const allProducts = [
   { id: "1", name: "iPhone 15 Pro", price: 999, rating: 4.8, icon: "📱", category: "Electronics" },
@@ -24,6 +24,12 @@ const allProducts = [
   { id: "10", name: "Lipstick Set", price: 35, rating: 4.5, icon: "💄", category: "Beauty" },
   { id: "11", name: "iPad Pro", price: 799, rating: 4.8, icon: "📱", category: "Electronics" },
   { id: "12", name: "Denim Jacket", price: 79, rating: 4.3, icon: "👕", category: "Fashion" },
+  { id: "13", name: "Nintendo Switch OLED", price: 349, rating: 4.8, icon: "🎮", category: "Gaming" },
+  { id: "14", name: "Gaming Headset", price: 89, rating: 4.6, icon: "🎧", category: "Gaming" },
+  { id: "15", name: "Carry-On Luggage", price: 129, rating: 4.5, icon: "🧳", category: "Travel" },
+  { id: "16", name: "Travel Pillow", price: 27, rating: 4.4, icon: "🛏️", category: "Travel" },
+  { id: "17", name: "Ergonomic Mouse", price: 59, rating: 4.6, icon: "🖱️", category: "Office" },
+  { id: "18", name: "Standing Desk", price: 249, rating: 4.7, icon: "🖥️", category: "Office" },
 ];
 
 type SortOption = "default" | "price_asc" | "price_desc" | "rating";
