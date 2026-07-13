@@ -1,25 +1,39 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { useTheme } from "@/context/ThemeContext";
 import { sendLocalNotification } from "@/lib/notifications";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+const steps = ["Cart", "Address", "Payment", "Confirm"];
+
+const paymentMethods = [
+  { id: "card", label: "Credit / Debit Card", detail: "**** **** **** 1234", icon: "💳" },
+  { id: "upi", label: "UPI", detail: "Pay via any UPI app", icon: "📲" },
+  { id: "cod", label: "Cash on Delivery", detail: "Pay when it arrives", icon: "💵" },
+];
 
 export default function Checkout() {
   const router = useRouter();
   const { colors } = useTheme();
   const { items, total, clearCart } = useCart();
+  const [stepIndex, setStepIndex] = useState(0);
+  const [selectedPayment, setSelectedPayment] = useState("card");
+
+  const delivery = 5;
+  const grandTotal = total + delivery;
 
   const handlePlaceOrder = async () => {
     await sendLocalNotification(
       "Order Placed! 🎉",
-      `Your order of $${total + 5} has been placed successfully!`
+      `Your order of $${grandTotal} has been placed successfully!`
     );
     Alert.alert(
       "Order Placed! 🎉",
@@ -36,85 +50,254 @@ export default function Checkout() {
     );
   };
 
+  const goNext = () => {
+    if (stepIndex < steps.length - 1) {
+      setStepIndex((i) => i + 1);
+    } else {
+      handlePlaceOrder();
+    }
+  };
+
+  const goBack = () => {
+    if (stepIndex > 0) setStepIndex((i) => i - 1);
+    else router.back();
+  };
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Checkout</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.backButton} onPress={goBack}>
+          <Text style={[styles.backButtonText, { color: colors.primary }]}>←</Text>
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>Checkout</Text>
+      </View>
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Order Summary</Text>
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {items.map((item) => (
-          <View key={item.id} style={styles.orderItem}>
-            <Text style={styles.orderIcon}>{item.icon}</Text>
-            <Text style={[styles.orderName, { color: colors.text }]}>{item.name}</Text>
-            <Text style={[styles.orderQty, { color: colors.subtext }]}>x{item.quantity}</Text>
-            <Text style={[styles.orderPrice, { color: colors.primary }]}>${item.price * item.quantity}</Text>
+      {/* Progress steps */}
+      <View style={styles.stepRow}>
+        {steps.map((step, index) => {
+          const isDone = index < stepIndex;
+          const isActive = index === stepIndex;
+          const isLast = index === steps.length - 1;
+          return (
+            <View key={step} style={styles.stepItem}>
+              <View style={styles.stepCircleWrap}>
+                <View
+                  style={[
+                    styles.stepCircle,
+                    {
+                      backgroundColor: isDone || isActive ? colors.primary : colors.card,
+                      borderColor: isDone || isActive ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={{ color: isDone || isActive ? "#fff" : colors.subtext, fontWeight: "700", fontSize: 12 }}>
+                    {isDone ? "✓" : index + 1}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    { color: isActive ? colors.primary : colors.subtext, fontWeight: isActive ? "700" : "500" },
+                  ]}
+                >
+                  {step}
+                </Text>
+              </View>
+              {!isLast && (
+                <View style={[styles.stepLine, { backgroundColor: isDone ? colors.primary : colors.border }]} />
+              )}
+            </View>
+          );
+        })}
+      </View>
+
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        {/* Step 0: Cart */}
+        {stepIndex === 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Order Items</Text>
+            {items.map((item) => (
+              <View key={item.id} style={[styles.itemCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View style={[styles.itemIconWrap, { backgroundColor: colors.background }]}>
+                  <Text style={{ fontSize: 24 }}>{item.icon}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                  <Text style={[styles.itemQty, { color: colors.subtext }]}>Qty: {item.quantity}</Text>
+                </View>
+                <Text style={[styles.itemPrice, { color: colors.primary }]}>${item.price * item.quantity}</Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        )}
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Delivery Address</Text>
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.addressText, { color: colors.text }]}>📍 123 Main Street</Text>
-        <Text style={[styles.addressSubText, { color: colors.subtext }]}>New York, NY 10001</Text>
-        <TouchableOpacity>
-          <Text style={[styles.changeText, { color: colors.primary }]}>Change Address</Text>
+        {/* Step 1: Address */}
+        {stepIndex === 1 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Delivery Address</Text>
+            <View style={[styles.addressCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.addressHeaderRow}>
+                <Text style={{ fontSize: 20 }}>📍</Text>
+                <Text style={[styles.addressName, { color: colors.text }]}>123 Main Street</Text>
+              </View>
+              <Text style={[styles.addressText, { color: colors.subtext }]}>New York, NY 10001</Text>
+              <TouchableOpacity style={styles.changeAddressBtn}>
+                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>Change Address</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Step 2: Payment */}
+        {stepIndex === 2 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Text>
+            {paymentMethods.map((method) => {
+              const isActive = selectedPayment === method.id;
+              return (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.paymentCard,
+                    {
+                      backgroundColor: colors.card,
+                      borderColor: isActive ? colors.primary : colors.border,
+                      borderWidth: isActive ? 2 : 1,
+                    },
+                  ]}
+                  onPress={() => setSelectedPayment(method.id)}
+                >
+                  <Text style={{ fontSize: 22, marginRight: 12 }}>{method.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.paymentLabel, { color: colors.text }]}>{method.label}</Text>
+                    <Text style={[styles.paymentDetail, { color: colors.subtext }]}>{method.detail}</Text>
+                  </View>
+                  <View style={[styles.radioOuter, { borderColor: isActive ? colors.primary : colors.border }]}>
+                    {isActive && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Step 3: Confirm */}
+        {stepIndex === 3 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Review Your Order</Text>
+            <View style={[styles.reviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.reviewLabel, { color: colors.subtext }]}>Deliver to</Text>
+              <Text style={[styles.reviewValue, { color: colors.text }]}>123 Main Street, New York, NY 10001</Text>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <Text style={[styles.reviewLabel, { color: colors.subtext }]}>Payment</Text>
+              <Text style={[styles.reviewValue, { color: colors.text }]}>
+                {paymentMethods.find((m) => m.id === selectedPayment)?.label}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Order summary — always visible */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Order Summary</Text>
+          <View style={[styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: colors.subtext }]}>Subtotal</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>${total}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: colors.subtext }]}>Delivery</Text>
+              <Text style={[styles.summaryValue, { color: colors.text }]}>${delivery}</Text>
+            </View>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <View style={styles.summaryRow}>
+              <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
+              <Text style={[styles.totalValue, { color: colors.primary }]}>${grandTotal}</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View>
+          <Text style={[styles.footerLabel, { color: colors.subtext }]}>Total</Text>
+          <Text style={[styles.footerTotal, { color: colors.text }]}>${grandTotal}</Text>
+        </View>
+        <TouchableOpacity style={[styles.nextBtn, { backgroundColor: colors.primary }]} onPress={goNext}>
+          <Text style={styles.nextBtnText}>
+            {stepIndex === steps.length - 1 ? "Place Order 🎉" : "Continue"}
+          </Text>
         </TouchableOpacity>
       </View>
-
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Text>
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.addressText, { color: colors.text }]}>💳 Credit Card</Text>
-        <Text style={[styles.addressSubText, { color: colors.subtext }]}>**** **** **** 1234</Text>
-        <TouchableOpacity>
-          <Text style={[styles.changeText, { color: colors.primary }]}>Change Payment</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={[styles.totalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: colors.subtext }]}>Subtotal</Text>
-          <Text style={[styles.totalValue, { color: colors.text }]}>${total}</Text>
-        </View>
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: colors.subtext }]}>Delivery</Text>
-          <Text style={[styles.totalValue, { color: colors.text }]}>$5</Text>
-        </View>
-        <View style={[styles.grandTotalRow, { borderTopColor: colors.border }]}>
-          <Text style={[styles.grandTotalLabel, { color: colors.text }]}>Total</Text>
-          <Text style={[styles.grandTotalValue, { color: colors.primary }]}>${total + 5}</Text>
-        </View>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.orderBtn, { backgroundColor: colors.primary }]}
-        onPress={handlePlaceOrder}
-      >
-        <Text style={styles.orderBtnText}>Place Order 🎉</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50 },
-  title: { fontSize: 24, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", paddingHorizontal: 20, marginBottom: 8 },
-  card: { marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
-  orderItem: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  orderIcon: { fontSize: 24, marginRight: 8 },
-  orderName: { flex: 1, fontSize: 14 },
-  orderQty: { fontSize: 14, marginRight: 8 },
-  orderPrice: { fontSize: 14, fontWeight: "bold" },
-  addressText: { fontSize: 16, fontWeight: "bold", marginBottom: 4 },
-  addressSubText: { fontSize: 14, marginBottom: 8 },
-  changeText: { fontWeight: "bold" },
-  totalCard: { marginHorizontal: 20, borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  totalLabel: { fontSize: 14 },
-  totalValue: { fontSize: 14 },
-  grandTotalRow: { flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, paddingTop: 8, marginTop: 4 },
-  grandTotalLabel: { fontSize: 18, fontWeight: "bold" },
-  grandTotalValue: { fontSize: 18, fontWeight: "bold" },
-  orderBtn: { margin: 20, padding: 16, borderRadius: 12, alignItems: "center", marginBottom: 40 },
-  orderBtnText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  headerRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginBottom: 16 },
+  backButton: { marginRight: 10, padding: 6 },
+  backButtonText: { fontSize: 22, fontWeight: "700" },
+  title: { fontSize: 22, fontWeight: "bold" },
+
+  stepRow: { flexDirection: "row", paddingHorizontal: 20, marginBottom: 20, alignItems: "flex-start" },
+  stepItem: { flexDirection: "row", alignItems: "flex-start", flex: 1 },
+  stepCircleWrap: { alignItems: "center", width: 60 },
+  stepCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  stepLabel: { fontSize: 10, textAlign: "center" },
+  stepLine: { flex: 1, height: 2, marginTop: 13, marginHorizontal: -4 },
+
+  body: { paddingHorizontal: 20, paddingBottom: 20 },
+  section: { marginBottom: 20 },
+  sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
+
+  itemCard: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1 },
+  itemIconWrap: { width: 48, height: 48, borderRadius: 10, justifyContent: "center", alignItems: "center", marginRight: 12 },
+  itemName: { fontSize: 15, fontWeight: "600", marginBottom: 2 },
+  itemQty: { fontSize: 12 },
+  itemPrice: { fontSize: 15, fontWeight: "700" },
+
+  addressCard: { borderRadius: 14, padding: 16, borderWidth: 1 },
+  addressHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  addressName: { fontSize: 15, fontWeight: "700" },
+  addressText: { fontSize: 13, marginBottom: 2, lineHeight: 19 },
+  changeAddressBtn: { marginTop: 10 },
+
+  paymentCard: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 14, marginBottom: 10 },
+  paymentLabel: { fontSize: 15, fontWeight: "600" },
+  paymentDetail: { fontSize: 12, marginTop: 2 },
+  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, justifyContent: "center", alignItems: "center" },
+  radioInner: { width: 10, height: 10, borderRadius: 5 },
+
+  reviewCard: { borderRadius: 14, padding: 16, borderWidth: 1 },
+  reviewLabel: { fontSize: 12, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
+  reviewValue: { fontSize: 15, fontWeight: "600", marginBottom: 4 },
+
+  summaryCard: { borderRadius: 14, padding: 16, borderWidth: 1 },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
+  summaryLabel: { fontSize: 14 },
+  summaryValue: { fontSize: 14, fontWeight: "600" },
+  divider: { height: 1, marginVertical: 8 },
+  totalLabel: { fontSize: 16, fontWeight: "700" },
+  totalValue: { fontSize: 18, fontWeight: "800" },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderTopWidth: 1,
+  },
+  footerLabel: { fontSize: 12 },
+  footerTotal: { fontSize: 20, fontWeight: "800" },
+  nextBtn: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 14 },
+  nextBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });
