@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  Dimensions,
+  useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
-
-const { width } = Dimensions.get("window");
 
 const categories = [
   { id: "1", name: "Electronics", icon: "📱", color: "#6C63FF" },
@@ -57,14 +55,15 @@ const allProducts = [
 ];
 
 const banners = [
-  { id: "1", title: "Big Sale! 🔥", subtitle: "Up to 70% off Electronics", color: "#6C63FF", icon: "📱" },
-  { id: "2", title: "New Arrivals ✨", subtitle: "Latest Fashion Collection", color: "#FF6584", icon: "👗" },
-  { id: "3", title: "Free Delivery 🚚", subtitle: "On orders above $50", color: "#43E97B", icon: "🛍️" },
+  { id: "1", title: "Big Sale! 🔥", subtitle: "Up to 70% off Electronics", color: "#6C63FF", icon: "📱", category: "Electronics" },
+  { id: "2", title: "New Arrivals ✨", subtitle: "Latest Fashion Collection", color: "#FF6584", icon: "👗", category: "Fashion" },
+  { id: "3", title: "Free Delivery 🚚", subtitle: "On orders above $50", color: "#43E97B", icon: "🛍️", category: null },
 ];
 
 export default function Home() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
 
   const navigateToProduct = (item: any) => {
     router.push({
@@ -78,6 +77,17 @@ export default function Home() {
         icon: item.icon,
       },
     });
+  };
+
+  const navigateToBanner = (banner: any) => {
+    if (banner.category) {
+      router.push({
+        pathname: "/(stack)/category",
+        params: { name: banner.category },
+      });
+    } else {
+      router.push("/(stack)/search");
+    }
   };
 
   return (
@@ -119,7 +129,9 @@ export default function Home() {
         {banners.map((banner) => (
           <TouchableOpacity
             key={banner.id}
-            style={[styles.banner, { backgroundColor: banner.color }]}
+            style={[styles.banner, { backgroundColor: banner.color, width: width - 48 }]}
+            onPress={() => navigateToBanner(banner)}
+            activeOpacity={0.85}
           >
             <Text style={styles.bannerIcon}>{banner.icon}</Text>
             <View>
@@ -210,7 +222,11 @@ export default function Home() {
         {allProducts.map((item) => (
           <TouchableOpacity
             key={item.id}
-            style={[styles.gridCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              styles.gridCard,
+              { width: (width - 44) / 2 },
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             onPress={() => navigateToProduct(item)}
           >
             <Text style={styles.gridIcon}>{item.icon}</Text>
@@ -247,7 +263,7 @@ const styles = StyleSheet.create({
   searchIcon: { fontSize: 18, marginRight: 8 },
   searchPlaceholder: { fontSize: 15, flex: 1 },
   bannerScroll: { paddingLeft: 20, marginBottom: 20 },
-  banner: { width: width - 48, borderRadius: 20, padding: 20, marginRight: 12, height: 130, flexDirection: "row", alignItems: "center", gap: 16 },
+  banner: { borderRadius: 20, padding: 20, marginRight: 12, height: 130, flexDirection: "row", alignItems: "center", gap: 16 },
   bannerIcon: { fontSize: 56 },
   bannerTitle: { fontSize: 20, fontWeight: "bold", color: "#fff", marginBottom: 4 },
   bannerSubtitle: { fontSize: 12, color: "rgba(255,255,255,0.9)", marginBottom: 10 },
@@ -272,7 +288,7 @@ const styles = StyleSheet.create({
   featuredPrice: { fontSize: 15, fontWeight: "bold", marginBottom: 4 },
   featuredRating: { fontSize: 11 },
   grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 12, gap: 10 },
-  gridCard: { width: (width - 44) / 2, borderRadius: 16, padding: 12, borderWidth: 1, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
+  gridCard: { borderRadius: 16, padding: 12, borderWidth: 1, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
   gridIcon: { fontSize: 44, textAlign: "center", marginBottom: 8 },
   gridName: { fontSize: 13, fontWeight: "bold", marginBottom: 4, height: 36 },
   gridOriginal: { fontSize: 11, textDecorationLine: "line-through", marginBottom: 2 },

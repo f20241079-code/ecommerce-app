@@ -4,15 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
   ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-
-const { width } = Dimensions.get("window");
 
 const allProducts = [
   { id: "1", name: "iPhone 15 Pro", price: 999, originalPrice: 1199, rating: 4.8, reviews: 2341, icon: "📱", category: "Electronics", badge: "Best Seller" },
@@ -57,6 +55,7 @@ export default function Category() {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [showSort, setShowSort] = useState(false);
+  const { width } = useWindowDimensions();
 
   const filtered = allProducts.filter((p) => p.category === name);
 
@@ -126,7 +125,11 @@ export default function Category() {
           {sorted.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+              style={[
+                styles.card,
+                { width: (width - 44) / 2 },
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
               onPress={() =>
                 router.push({
                   pathname: "/(stack)/product-detail",
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
   countRow: { paddingHorizontal: 20, paddingVertical: 10 },
   count: { fontSize: 13 },
   grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 12, gap: 10 },
-  card: { width: (width - 44) / 2, borderRadius: 16, padding: 12, borderWidth: 1, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
+  card: { borderRadius: 16, padding: 12, borderWidth: 1, elevation: 2, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
   wishlistBtn: { alignSelf: "flex-end", marginBottom: 4 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: "flex-start", marginBottom: 6 },
   badgeText: { color: "#fff", fontSize: 10, fontWeight: "bold" },
