@@ -54,3 +54,23 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Environment & CI
+
+- **Required env vars:**
+   - `SUPABASE_URL` — your Supabase project URL
+   - `SUPABASE_ANON_KEY` — your Supabase anon (publishable) key
+
+- Recommended: provide these via `expo` config (`app.config.js` or `app.json` `extra`) or use EAS secrets for production. Do NOT commit keys to the repository; add any local `.env` files to `.gitignore`.
+
+- Local dev quick start:
+
+   ```bash
+   npm install
+   # set env vars (example for macOS/Linux)
+   export SUPABASE_URL="https://<project>.supabase.co"
+   export SUPABASE_ANON_KEY="your_anon_key"
+   npx expo start
+   ```
+
+- CI: this repo includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs `npm ci` and `npm run lint` on pushes and PRs. Update the workflow as needed to run tests or builds.
