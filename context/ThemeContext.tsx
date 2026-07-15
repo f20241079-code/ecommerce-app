@@ -1,6 +1,6 @@
 import { getThemeColors, ThemeColors } from "@/constants/colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, ReactNode, useContext, useEffect, useState, useMemo, useCallback } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
 

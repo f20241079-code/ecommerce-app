@@ -74,3 +74,21 @@ Join our community of developers creating universal apps.
    ```
 
 - CI: this repo includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs `npm ci` and `npm run lint` on pushes and PRs. Update the workflow as needed to run tests or builds.
+
+- Local env helper:
+
+   1. Create a `.env.local` file in the repo root.
+   2. Add:
+
+      ```bash
+      SUPABASE_URL="https://<project>.supabase.co"
+      SUPABASE_ANON_KEY="your_anon_key"
+      ```
+
+   3. Start Expo with:
+
+      ```bash
+      npx expo start
+      ```
+
+   The app now reads the same values from `process.env` and exposes them to runtime via `app.config.js`.

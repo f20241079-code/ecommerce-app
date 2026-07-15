@@ -1,5 +1,10 @@
+import {
+    fetchCartItems,
+    getCurrentUserId,
+    syncCartItems,
+} from "@/lib/supabaseHelpers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type CartItem = {
   id: string;
@@ -24,33 +29,83 @@ const CartContext = createContext<CartContextType | null>(null);
 
 const CART_STORAGE_KEY = "cart-items-v1";
 
+const mergeCartItems = (localItems: CartItem[], remoteItems: CartItem[]) => {
+  const merged = new Map<string, CartItem>();
+  localItems.forEach((item) => merged.set(item.id, { ...item }));
+  remoteItems.forEach((item) => {
+    const existing = merged.get(item.id);
+    if (existing) {
+      merged.set(item.id, {
+        ...existing,
+        quantity: existing.quantity + item.quantity,
+      });
+    } else {
+      merged.set(item.id, { ...item });
+    }
+  });
+  return Array.from(merged.values());
+};
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [ready, setReady] = useState(false);
+  const isMounted = useRef(true);
 
   useEffect(() => {
     const load = async () => {
+      let localItems: CartItem[] = [];
       try {
         const raw = await AsyncStorage.getItem(CART_STORAGE_KEY);
-        if (raw) setItems(JSON.parse(raw));
-      } catch (e) {
+        if (raw) localItems = JSON.parse(raw);
+      } catch {
         // ignore load errors
+      }
+
+      const userId = await getCurrentUserId();
+      if (userId) {
+        const remoteItems = await fetchCartItems(userId);
+        if (remoteItems) {
+          const merged = mergeCartItems(localItems, remoteItems);
+          if (isMounted.current) {
+            setItems(merged);
+            await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(merged));
+            await syncCartItems(userId, merged);
+          }
+          setReady(true);
+          return;
+        }
+      }
+
+      if (isMounted.current) {
+        setItems(localItems);
+        setReady(true);
       }
     };
 
     load();
+
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   useEffect(() => {
-    const save = async () => {
+    if (!ready) return;
+
+    const saveAndSync = async () => {
       try {
         await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
       } catch {
-        // ignore save errors
+        // ignore save failures
       }
+
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+      await syncCartItems(userId, items);
     };
 
-    save();
-  }, [items]);
+    saveAndSync();
+  }, [items, ready]);
 
   const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {

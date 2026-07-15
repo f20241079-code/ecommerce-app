@@ -3,15 +3,15 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Login() {
@@ -28,14 +28,12 @@ export default function Login() {
       Alert.alert("Missing email", "Enter your email before resending confirmation.");
       return;
     }
-
     setResending(true);
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: trimmedEmail,
     });
     setResending(false);
-
     if (error) {
       Alert.alert("Error", error.message);
     } else {
@@ -61,7 +59,6 @@ export default function Login() {
 
     if (error) {
       const message = error.message.toLowerCase();
-
       if (message.includes("not confirmed")) {
         Alert.alert(
           "Email confirmation required",
@@ -82,16 +79,11 @@ export default function Login() {
       return;
     }
 
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
       Alert.alert("Session issue", sessionError.message);
       return;
     }
-
     if (session) {
       router.replace("/(tabs)/home");
     } else {
@@ -99,13 +91,33 @@ export default function Login() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    // TODO: wire up supabase.auth.signInWithOAuth({ provider })
-    Alert.alert("Coming soon", `${provider} login isn't wired up yet.`);
+  const handleSocialLogin = async (provider: string) => {
+    if (Platform.OS !== "web") {
+      Alert.alert("Not supported", "Social login is only supported on web for now.");
+      return;
+    }
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as any,
+      options: {
+        redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+      },
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert("OAuth error", error.message);
+      return;
+    }
+    if (data?.url && typeof window !== "undefined") {
+      window.location.href = data.url;
+    }
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <Text style={styles.headerEmoji}>🛍️</Text>
@@ -143,7 +155,7 @@ export default function Login() {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={[styles.buttonText, { color: colors.white }]}>
+              <Text style={[styles.buttonText, { color: "#fff" }]}>
                 {loading ? "Logging in..." : "Login"}
               </Text>
             </TouchableOpacity>
@@ -157,23 +169,24 @@ export default function Login() {
             <View style={styles.socialRow}>
               <TouchableOpacity
                 style={[styles.socialButton, { backgroundColor: colors.background, borderColor: colors.border }]}
-                onPress={() => handleSocialLogin("Google")}
+                onPress={() => handleSocialLogin("google")}
               >
                 <Text style={styles.socialIcon}>🔴</Text>
                 <Text style={[styles.socialText, { color: colors.text }]}>Google</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.socialButton, { backgroundColor: colors.background, borderColor: colors.border }]}
-                onPress={() => handleSocialLogin("Apple")}
+                onPress={() => handleSocialLogin("apple")}
               >
-                <Text style={styles.socialIcon}></Text>
+                <Text style={styles.socialIcon}>🍎</Text>
                 <Text style={[styles.socialText, { color: colors.text }]}>Apple</Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
               <Text style={[styles.link, { color: colors.subtext }]}>
-                Don't have an account? <Text style={[styles.linkBold, { color: colors.primary }]}>Sign Up</Text>
+                Don't have an account?{" "}
+                <Text style={[styles.linkBold, { color: colors.primary }]}>Sign Up</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -194,69 +207,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerEmoji: { fontSize: 40, marginBottom: 6 },
-  headerBadge: {
-    fontSize: 13,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 1.5,
-    color: "rgba(255,255,255,0.85)",
-    marginBottom: 10,
-  },
+  headerBadge: { fontSize: 13, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5, color: "rgba(255,255,255,0.85)", marginBottom: 10 },
   headerTitle: { fontSize: 26, fontWeight: "bold", color: "#fff", marginBottom: 4 },
   headerSubtitle: { fontSize: 14, color: "rgba(255,255,255,0.9)", textAlign: "center" },
   body: { flex: 1, paddingHorizontal: 20, marginTop: -24 },
-  card: {
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  input: {
-    padding: 15,
-    borderRadius: 14,
-    marginBottom: 14,
-    fontSize: 16,
-    borderWidth: 1,
-  },
-  forgot: {
-    textAlign: "right",
-    marginBottom: 20,
-    fontWeight: "600",
-  },
-  button: {
-    padding: 15,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  card: { borderRadius: 24, padding: 24, borderWidth: 1, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  input: { padding: 15, borderRadius: 14, marginBottom: 14, fontSize: 16, borderWidth: 1 },
+  forgot: { textAlign: "right", marginBottom: 20, fontWeight: "600" },
+  button: { padding: 15, borderRadius: 14, alignItems: "center", marginBottom: 20 },
+  buttonText: { fontSize: 16, fontWeight: "bold" },
   dividerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20, gap: 10 },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { fontSize: 12, fontWeight: "600" },
   socialRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
-  socialButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
+  socialButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 13, borderRadius: 14, borderWidth: 1 },
   socialIcon: { fontSize: 16 },
   socialText: { fontSize: 14, fontWeight: "600" },
-  link: {
-    textAlign: "center",
-  },
-  linkBold: {
-    fontWeight: "bold",
-  },
+  link: { textAlign: "center" },
+  linkBold: { fontWeight: "bold" },
 });

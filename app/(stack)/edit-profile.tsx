@@ -1,18 +1,18 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  Image,
-} from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
-import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/context/ThemeContext";
+import { supabase, supabaseUrl } from "@/lib/supabase";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function EditProfile() {
   const router = useRouter();
@@ -78,7 +78,7 @@ export default function EditProfile() {
       const { data: { session } } = await supabase.auth.getSession();
 
       const response = await fetch(
-        `https://lgdjadfaigbhqvwcnrxm.supabase.co/storage/v1/object/avatars/${fileName}`,
+        `${supabaseUrl}/storage/v1/object/avatars/${fileName}`,
         {
           method: "POST",
           headers: {

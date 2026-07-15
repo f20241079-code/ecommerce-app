@@ -1,5 +1,5 @@
 import { useTheme } from "@/context/ThemeContext";
-import { supabase } from "@/lib/supabase";
+import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -23,15 +23,25 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    const trimmedName = fullName.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedPassword) {
+      Alert.alert("Missing details", "Please enter your name, email, and password.");
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: trimmedEmail,
+      password: trimmedPassword,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: trimmedName },
       },
     });
     setLoading(false);
+
     if (error) {
       Alert.alert("Error", error.message);
     } else {
@@ -43,10 +53,39 @@ export default function Signup() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    // TODO: wire up supabase.auth.signInWithOAuth({ provider })
-    Alert.alert("Coming soon", `${provider} signup isn't wired up yet.`);
+  const handleSocialLogin = async (provider: string) => {
+    if (Platform.OS !== "web") {
+      Alert.alert("Not supported", "Social signup is only supported on web for now.");
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    setLoading(false);
+
+    if (error) {
+      Alert.alert("OAuth error", error.message);
+      return;
+    }
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   };
+
+  if (!hasSupabaseConfig) {
+    return (
+      <View style={[styles.noticeContainer, { backgroundColor: colors.background }]}> 
+        <Text style={[styles.noticeTitle, { color: colors.text }]}>Auth is not configured</Text>
+        <Text style={[styles.noticeText, { color: colors.subtext }]}>Set SUPABASE_URL and SUPABASE_ANON_KEY in your environment or .env file to enable signup.</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -200,5 +239,22 @@ const styles = StyleSheet.create({
   },
   linkBold: {
     fontWeight: "bold",
+  },
+  noticeContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  noticeTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  noticeText: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 22,
   },
 });

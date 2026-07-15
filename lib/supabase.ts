@@ -1,83 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
-import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const supabaseUrl =
-  (Constants?.expoConfig?.extra?.SUPABASE_URL as string) ||
-  process.env.SUPABASE_URL ||
-  "";
-const supabaseAnonKey =
-  (Constants?.expoConfig?.extra?.SUPABASE_ANON_KEY as string) ||
-  process.env.SUPABASE_ANON_KEY ||
-  "";
+const supabaseUrl = "https://lgdjadfaigbhqvwcnrxm.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxnZGphZGZhaWdiaHF2d2NucnhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjU5NDMsImV4cCI6MjA5ODI0MTk0M30.wXEqnKE1q-FcUsAY0aWB32kOT3FvWsxnHlfW0mK1ns4";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  // Do not throw — warn so development can continue while signaling misconfiguration
-  // Use app config or environment variables (EAS secrets / app.config.js recommended)
-  // eslint-disable-next-line no-console
-  console.warn(
-    "Supabase URL or ANON key is not set. Provide via app config (expo.extra) or env vars."
-  );
-}
-
-const isServer = typeof window === "undefined";
-
-const createStorageAdapter = () => {
-  // Web: use localStorage if available
-  if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
-    return {
-      getItem: async (key: string) => {
-        try {
-          return window.localStorage.getItem(key);
-        } catch {
-          return null;
-        }
-      },
-      setItem: async (key: string, value: string) => {
-        try {
-          window.localStorage.setItem(key, value);
-        } catch {
-          /* ignore */
-        }
-      },
-      removeItem: async (key: string) => {
-        try {
-          window.localStorage.removeItem(key);
-        } catch {
-          /* ignore */
-        }
-      },
-    };
-  }
-
-  // Native (Expo): use SecureStore when running on a device/simulator
-  if (!isServer && Platform.OS !== "web") {
-    return {
-      getItem: (key: string) => SecureStore.getItemAsync(key),
-      setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-      removeItem: (key: string) => SecureStore.deleteItemAsync(key),
-    };
-  }
-
-  // Fallback (SSR or unknown): in-memory Map
-  const memoryStorage = new Map<string, string>();
-  return {
-    getItem: async (key: string) => memoryStorage.get(key) ?? null,
-    setItem: async (key: string, value: string) => {
-      memoryStorage.set(key, value);
-    },
-    removeItem: async (key: string) => {
-      memoryStorage.delete(key);
-    },
-  };
-};
+const ExpoSecureStoreAdapter = Platform.OS === "web"
+    ? {
+        getItem: (key) => { if (typeof window === "undefined") return Promise.resolve(null); return Promise.resolve(window.localStorage?.getItem(key) ?? null); },
+        setItem: (key, value) => { if (typeof window === "undefined") return Promise.resolve(); window.localStorage?.setItem(key, value); return Promise.resolve(); },
+        removeItem: (key) => { if (typeof window === "undefined") return Promise.resolve(); window.localStorage?.removeItem(key); return Promise.resolve(); },
+      }
+    : {
+        getItem: (key) => SecureStore.getItemAsync(key),
+        setItem: (key, value) => SecureStore.setItemAsync(key, value),
+        removeItem: (key) => SecureStore.deleteItemAsync(key),
+      };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: createStorageAdapter(),
+    storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
-    persistSession: true,
+    persistSession: Platform.OS !== "web",
     detectSessionInUrl: false,
   },
 });

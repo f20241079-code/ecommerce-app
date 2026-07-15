@@ -1,8 +1,14 @@
 import { useCart } from "@/context/CartContext";
 import { useTheme } from "@/context/ThemeContext";
 import { sendLocalNotification } from "@/lib/notifications";
+import {
+    AddressRecord,
+    createOrder,
+    fetchAddresses,
+    getCurrentUserId,
+} from "@/lib/supabaseHelpers";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Alert,
     ScrollView,
@@ -26,18 +32,43 @@ export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState("card");
+  const [addresses, setAddresses] = useState<AddressRecord[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<AddressRecord | null>(null);
+  const [addressLoading, setAddressLoading] = useState(true);
+  const [addressError, setAddressError] = useState<string | null>(null);
 
   const delivery = 5;
   const grandTotal = total + delivery;
 
   const handlePlaceOrder = async () => {
+    if (!selectedAddress) {
+      Alert.alert("Address required", "Please choose a delivery address before placing your order.");
+      return;
+    }
+
+    const userId = await getCurrentUserId();
+    let orderPlaced = false;
+
+    if (userId) {
+      const orderId = await createOrder(userId, {
+        status: "Processing",
+        total: grandTotal,
+        items,
+        delivery_address: `${selectedAddress.label}: ${selectedAddress.address}, ${selectedAddress.city}`,
+      });
+      orderPlaced = Boolean(orderId);
+    }
+
     await sendLocalNotification(
       "Order Placed! 🎉",
       `Your order of $${grandTotal} has been placed successfully!`
     );
+
     Alert.alert(
       "Order Placed! 🎉",
-      "Your order has been placed successfully!",
+      orderPlaced
+        ? "Your order has been saved to your account."
+        : "Your order has been placed locally. Sign in to save it to your account.",
       [
         {
           text: "OK",
@@ -51,6 +82,11 @@ export default function Checkout() {
   };
 
   const goNext = () => {
+    if (stepIndex === 1 && !selectedAddress) {
+      Alert.alert("Address required", "Please select a delivery address before continuing.");
+      return;
+    }
+
     if (stepIndex < steps.length - 1) {
       setStepIndex((i) => i + 1);
     } else {
@@ -62,6 +98,29 @@ export default function Checkout() {
     if (stepIndex > 0) setStepIndex((i) => i - 1);
     else router.back();
   };
+
+  useEffect(() => {
+    const loadAddresses = async () => {
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        setAddressError("Sign in to save delivery addresses.");
+        setAddressLoading(false);
+        return;
+      }
+
+      const savedAddresses = await fetchAddresses(userId);
+      if (!savedAddresses || savedAddresses.length === 0) {
+        setAddressError("No saved delivery addresses found.");
+      } else {
+        setAddresses(savedAddresses);
+        setSelectedAddress(savedAddresses.find((address) => address.default) ?? savedAddresses[0]);
+        setAddressError(null);
+      }
+      setAddressLoading(false);
+    };
+
+    loadAddresses();
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -135,20 +194,42 @@ export default function Checkout() {
         {stepIndex === 1 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Delivery Address</Text>
-            <View style={[styles.addressCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.addressHeaderRow}>
-                <Text style={{ fontSize: 20 }}>📍</Text>
-                <Text style={[styles.addressName, { color: colors.text }]}>123 Main Street</Text>
+            {addressLoading ? (
+              <Text style={[styles.placeholderText, { color: colors.subtext }]}>Loading saved addresses…</Text>
+            ) : addressError ? (
+              <Text style={[styles.placeholderText, { color: colors.subtext }]}>{addressError}</Text>
+            ) : (
+              <View style={[styles.addressCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+                {addresses.map((address) => {
+                  const isSelected = selectedAddress?.id === address.id;
+                  return (
+                    <TouchableOpacity
+                      key={address.id}
+                      style={[
+                        styles.addressOption,
+                        {
+                          backgroundColor: isSelected ? colors.primary + "10" : colors.card,
+                          borderColor: isSelected ? colors.primary : colors.border,
+                        },
+                      ]}
+                      onPress={() => setSelectedAddress(address)}
+                    >
+                      <View style={styles.addressHeaderRow}>
+                        <Text style={{ fontSize: 20 }}>📍</Text>
+                        <Text style={[styles.addressName, { color: colors.text }]}>{address.label}</Text>
+                      </View>
+                      <Text style={[styles.addressText, { color: colors.subtext }]}>{address.address}</Text>
+                      <Text style={[styles.addressText, { color: colors.subtext }]}>{address.city}</Text>
+                      {isSelected && (
+                        <Text style={[styles.selectedTag, { color: colors.primary }]}>Selected</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              <Text style={[styles.addressText, { color: colors.subtext }]}>New York, NY 10001</Text>
-              <TouchableOpacity style={styles.changeAddressBtn}>
-                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>Change Address</Text>
-              </TouchableOpacity>
-            </View>
+            )}
           </View>
         )}
-
-        {/* Step 2: Payment */}
         {stepIndex === 2 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Method</Text>
@@ -187,9 +268,9 @@ export default function Checkout() {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Review Your Order</Text>
             <View style={[styles.reviewCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[styles.reviewLabel, { color: colors.subtext }]}>Deliver to</Text>
-              <Text style={[styles.reviewValue, { color: colors.text }]}>123 Main Street, New York, NY 10001</Text>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              <Text style={[styles.reviewLabel, { color: colors.subtext }]}>Payment</Text>
+              <Text style={[styles.reviewValue, { color: colors.text }]}> 
+                {selectedAddress ? `${selectedAddress.label}: ${selectedAddress.address}, ${selectedAddress.city}` : "No address selected"}
+              </Text>
               <Text style={[styles.reviewValue, { color: colors.text }]}>
                 {paymentMethods.find((m) => m.id === selectedPayment)?.label}
               </Text>
@@ -269,6 +350,8 @@ const styles = StyleSheet.create({
   addressHeaderRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
   addressName: { fontSize: 15, fontWeight: "700" },
   addressText: { fontSize: 13, marginBottom: 2, lineHeight: 19 },
+  addressOption: { borderRadius: 14, padding: 14, borderWidth: 1, marginBottom: 12 },
+  selectedTag: { marginTop: 10, fontSize: 13, fontWeight: "700" },
   changeAddressBtn: { marginTop: 10 },
 
   paymentCard: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 14, marginBottom: 10 },

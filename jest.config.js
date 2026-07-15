@@ -1,9 +1,9 @@
 module.exports = {
-  preset: '@react-native/jest-preset',
+  preset: 'jest-expo',
   setupFilesAfterEnv: ['./jest.setup.js'],
-  transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
-  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|@expo|expo|expo-constants|expo-secure-store|expo-modules-core|@supabase/supabase-js)/)'
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },

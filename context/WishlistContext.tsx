@@ -1,5 +1,10 @@
-import { createContext, useContext, useState, ReactNode, useEffect, useMemo, useCallback } from "react";
+import {
+    fetchWishlistItems,
+    getCurrentUserId,
+    syncWishlistItems,
+} from "@/lib/supabaseHelpers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type WishlistItem = {
   id: string;
@@ -21,33 +26,77 @@ const WishlistContext = createContext<WishlistContextType | null>(null);
 
 const WISHLIST_STORAGE_KEY = "wishlist-items-v1";
 
+const mergeWishlistItems = (localItems: WishlistItem[], remoteItems: WishlistItem[]) => {
+  const merged = new Map<string, WishlistItem>();
+  localItems.forEach((item) => merged.set(item.id, { ...item }));
+  remoteItems.forEach((item) => {
+    if (!merged.has(item.id)) {
+      merged.set(item.id, { ...item });
+    }
+  });
+  return Array.from(merged.values());
+};
+
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     const load = async () => {
+      let localItems: WishlistItem[] = [];
       try {
         const raw = await AsyncStorage.getItem(WISHLIST_STORAGE_KEY);
-        if (raw) setItems(JSON.parse(raw));
+        if (raw) localItems = JSON.parse(raw);
       } catch {
         // ignore
+      }
+
+      const userId = await getCurrentUserId();
+      if (userId) {
+        const remoteItems = await fetchWishlistItems(userId);
+        if (remoteItems) {
+          const merged = mergeWishlistItems(localItems, remoteItems);
+          if (active) {
+            setItems(merged);
+            await AsyncStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(merged));
+            await syncWishlistItems(userId, merged);
+          }
+          setReady(true);
+          return;
+        }
+      }
+
+      if (active) {
+        setItems(localItems);
+        setReady(true);
       }
     };
 
     load();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    const save = async () => {
+    if (!ready) return;
+
+    const saveAndSync = async () => {
       try {
         await AsyncStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(items));
       } catch {
         // ignore
       }
+
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+      await syncWishlistItems(userId, items);
     };
 
-    save();
-  }, [items]);
+    saveAndSync();
+  }, [items, ready]);
 
   const addToWishlist = useCallback((item: WishlistItem) => {
     setItems((prev) => {

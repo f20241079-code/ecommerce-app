@@ -1,5 +1,5 @@
 import { useTheme } from "@/context/ThemeContext";
-import { supabase } from "@/lib/supabase";
+import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -20,8 +20,22 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
 
   const handleReset = async () => {
+    if (!hasSupabaseConfig) {
+      Alert.alert(
+        "Auth not configured",
+        "Set SUPABASE_URL and SUPABASE_ANON_KEY before using password reset."
+      );
+      return;
+    }
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      Alert.alert("Missing email", "Please enter your email address.");
+      return;
+    }
+
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail);
     setLoading(false);
     if (error) {
       Alert.alert("Error", error.message);
@@ -30,6 +44,15 @@ export default function ForgotPassword() {
       router.back();
     }
   };
+
+  if (!hasSupabaseConfig) {
+    return (
+      <View style={[styles.noticeContainer, { backgroundColor: colors.background }]}> 
+        <Text style={[styles.noticeTitle, { color: colors.text }]}>Auth is not configured</Text>
+        <Text style={[styles.noticeText, { color: colors.subtext }]}>Set SUPABASE_URL and SUPABASE_ANON_KEY in your environment or .env file to enable password reset.</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -115,5 +138,22 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  noticeContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  noticeTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  noticeText: {
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 22,
   },
 });
