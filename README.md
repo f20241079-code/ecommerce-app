@@ -1,94 +1,302 @@
-# Welcome to your Expo app 👋
+# E-Commerce Mobile App 🛍️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-featured e-commerce mobile application built with React Native and Expo, featuring authentication, product catalog, shopping cart, wishlist, order management, and more.
 
-## Get started
+## 📱 Features
 
-1. Install dependencies
+### User Management
+- **Authentication**: Sign up and login functionality with secure credential storage
+- **Password Reset**: Forgot password feature with email recovery
+- **Profile Management**: Edit user profile information
+- **Address Management**: Add, edit, and manage multiple delivery addresses
 
+### Shopping Experience
+- **Product Catalog**: Browse products with detailed information
+- **Search**: Full-text search functionality for finding products
+- **Categories**: Browse products by category
+- **Product Details**: Comprehensive product information with images and specifications
+- **Wishlist**: Save favorite products for later
+
+### Shopping Cart & Checkout
+- **Shopping Cart**: Add/remove items, adjust quantities
+- **Cart Persistence**: Cart data persists across app sessions
+- **Checkout Process**: Multi-step checkout with address selection
+- **Order Management**: View order history and track orders
+
+### Additional Features
+- **Theme Support**: Light and dark theme options with persistent preferences
+- **Push Notifications**: Real-time notifications for order updates and promotions
+- **Responsive Design**: Works on Android, iOS, and web platforms
+
+## 🏗️ Project Structure
+
+```
+ecommerce-app/
+├── app/                          # App routing and screens (Expo Router)
+│   ├── (auth)/                  # Authentication screens
+│   │   ├── login.tsx
+│   │   ├── signup.tsx
+│   │   └── forgot-password.tsx
+│   ├── (stack)/                 # Stack navigation screens
+│   │   ├── addresses.tsx
+│   │   ├── category.tsx
+│   │   ├── checkout.tsx
+│   │   ├── product-detail.tsx
+│   │   ├── search.tsx
+│   │   ├── order-history.tsx
+│   │   ├── edit-profile.tsx
+│   │   └── settings.tsx
+│   ├── (tabs)/                  # Tab navigation screens
+│   │   ├── home.tsx
+│   │   ├── cart.tsx
+│   │   ├── wishlist.tsx
+│   │   └── profile.tsx
+│   ├── _layout.tsx              # Root layout
+│   ├── index.tsx                # Home screen
+│   └── onboarding.tsx           # Onboarding flow
+├── context/                      # React Context providers
+│   ├── CartContext.tsx          # Shopping cart state management
+│   ├── ThemeContext.tsx         # Theme preferences management
+│   └── WishlistContext.tsx      # Wishlist state management
+├── lib/                         # Utility functions and services
+│   ├── supabase.ts             # Supabase client configuration
+│   ├── supabaseHelpers.ts      # Supabase helper functions
+│   └── notifications.ts         # Push notification setup
+├── constants/                   # App constants
+│   ├── colors.ts               # Color palette
+│   └── theme.ts                # Theme configuration
+├── __tests__/                  # Test files
+├── __mocks__/                  # Mock files for testing
+├── assets/                     # Static assets
+│   ├── images/                # App images and icons
+│   └── expo.icon/             # Expo icon configuration
+├── scripts/                    # Utility scripts
+└── package.json               # Project dependencies
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn package manager
+- Expo CLI: `npm install -g expo-cli`
+- Android Studio or Xcode (for native builds)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ecommerce-app.git
+   cd ecommerce-app
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Environment Setup**
+   - Create a `.env` file in the root directory with your Supabase credentials:
+     ```
+     EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+     EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
 
+4. **Start the development server**
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+### Running on Different Platforms
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+**iOS Simulator**
+```bash
+npm run ios
+```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**Android Emulator**
+```bash
+npm run android
+```
 
-## Get a fresh project
+**Web Browser**
+```bash
+npm run web
+```
 
-When you're ready, run:
+**Expo Go (Development)**
+- Press `i` for iOS or `a` for Android in the Expo CLI
+- Scan the QR code with Expo Go app (available on App Store and Google Play)
 
+## 📦 Tech Stack
+
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **Navigation**: Expo Router (File-based routing)
+- **State Management**: React Context API
+- **Backend**: Supabase (PostgreSQL database with built-in auth)
+- **Storage**: AsyncStorage (local persistence)
+- **Secure Storage**: Expo Secure Store (sensitive data)
+- **Image Handling**: Expo Image
+- **Notifications**: Expo Notifications
+- **Testing**: Jest with React Native Testing Library
+
+## 🧪 Testing
+
+Run tests with:
+```bash
+npm test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+Tests are configured to work with Jest and include mocks for:
+- AsyncStorage
+- Supabase client
+
+## 🛠️ Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start the Expo development server |
+| `npm run ios` | Run on iOS simulator |
+| `npm run android` | Run on Android emulator |
+| `npm run web` | Run in web browser |
+| `npm test` | Run Jest tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run lint` | Run ESLint for code quality |
+| `npm run reset-project` | Reset project to starter template |
+
+## 📱 App Architecture
+
+### Navigation Structure
+```
+Root Layout
+├── Onboarding (first-time users)
+├── Auth Stack
+│   ├── Login
+│   ├── Signup
+│   └── Forgot Password
+├── Main App
+│   ├── Tab Navigation
+│   │   ├── Home
+│   │   ├── Cart
+│   │   ├── Wishlist
+│   │   └── Profile
+│   └── Stack Navigation (overlays)
+│       ├── Product Detail
+│       ├── Search
+│       ├── Category
+│       ├── Checkout
+│       ├── Order History
+│       ├── Addresses
+│       ├── Edit Profile
+│       └── Settings
+```
+
+### State Management
+- **CartContext**: Manages shopping cart state
+- **WishlistContext**: Manages wishlist items
+- **ThemeContext**: Manages app theme preferences
+
+## 🔐 Security Features
+
+- Secure credential storage using Expo Secure Store
+- Supabase authentication with JWT tokens
+- Secure API communication with HTTPS
+- Platform-specific storage (SecureStore for native, localStorage for web)
+
+## 🎨 Styling
+
+- Custom theme system with light and dark modes
+- Color constants defined in `constants/colors.ts`
+- Theme configuration in `constants/theme.ts`
+- Consistent UI components throughout the app
+
+## 📞 API Integration
+
+The app integrates with Supabase for:
+- User authentication and management
+- Product catalog management
+- Order processing
+- User data and preferences
+
+Supabase configuration is in `lib/supabase.ts` with helper functions in `lib/supabaseHelpers.ts`.
+
+## 🔔 Notifications
+
+Push notifications are configured in `lib/notifications.ts` using Expo Notifications API. Features include:
+- Order status updates
+- Promotional notifications
+- Personalized alerts
+
+## 🚀 Building for Production
+
+### Build for iOS
+```bash
+eas build --platform ios
+```
+
+### Build for Android
+```bash
+eas build --platform android
+```
+
+### Deploy to Stores
+Use Expo Application Services (EAS) for building and submitting to App Store and Google Play.
+
+## 📝 Code Quality
+
+- **TypeScript**: Full type safety across the codebase
+- **ESLint**: Code style consistency
+- **Jest**: Unit and component testing
+- **File-based Routing**: Clean, organized navigation structure
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📚 Resources
+
+- [Expo Documentation](https://docs.expo.dev)
+- [React Native Documentation](https://reactnative.dev)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Expo Router Guide](https://docs.expo.dev/router/introduction/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+## 🐛 Troubleshooting
+
+### Metro Bundler Issues
+```bash
+npm start -- --clear
+```
+
+### Dependency Issues
+```bash
+npm install
+npx expo doctor
+```
+
+### Build Issues
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📧 Support
 
-### Other setup steps
+For support, email support@example.com or open an issue on GitHub.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+---
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-
-## Environment & CI
-
-- **Required env vars:**
-   - `SUPABASE_URL` — your Supabase project URL
-   - `SUPABASE_ANON_KEY` — your Supabase anon (publishable) key
-
-- Recommended: provide these via `expo` config (`app.config.js` or `app.json` `extra`) or use EAS secrets for production. Do NOT commit keys to the repository; add any local `.env` files to `.gitignore`.
-
-- Local dev quick start:
-
-   ```bash
-   npm install
-   # set env vars (example for macOS/Linux)
-   export SUPABASE_URL="https://<project>.supabase.co"
-   export SUPABASE_ANON_KEY="your_anon_key"
-   npx expo start
-   ```
-
-- CI: this repo includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs `npm ci` and `npm run lint` on pushes and PRs. Update the workflow as needed to run tests or builds.
-
-- Local env helper:
-
-   1. Create a `.env.local` file in the repo root.
-   2. Add:
-
-      ```bash
-      SUPABASE_URL="https://<project>.supabase.co"
-      SUPABASE_ANON_KEY="your_anon_key"
-      ```
-
-   3. Start Expo with:
-
-      ```bash
-      npx expo start
-      ```
-
-   The app now reads the same values from `process.env` and exposes them to runtime via `app.config.js`.
+**Happy shopping! 🎉**
