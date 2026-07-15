@@ -10,8 +10,13 @@ import {
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { useCart } from "@/context/CartContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
+
+// Standard Expo Router tab bar height + safe area inset.
+// Adjust TAB_BAR_BASE_HEIGHT if your tab bar is a custom/taller height.
+const TAB_BAR_BASE_HEIGHT = 49;
 
 export default function Cart() {
   const { items, increaseQuantity, decreaseQuantity, removeFromCart, total } = useCart();
@@ -19,6 +24,8 @@ export default function Cart() {
   const router = useRouter();
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = TAB_BAR_BASE_HEIGHT + insets.bottom;
 
   const delivery = total > 50 ? 0 : 5;
   const discount = promoApplied ? Math.round(total * 0.1) : 0;
@@ -57,7 +64,7 @@ export default function Cart() {
         data={items}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + 100 }]}
         ListHeaderComponent={
           <>
             {/* Savings Banner */}
@@ -161,14 +168,12 @@ export default function Cart() {
                 <Text style={[styles.totalValue, { color: colors.primary }]}>${finalTotal.toFixed(2)}</Text>
               </View>
             </View>
-
-            <View style={{ height: 120 }} />
           </>
         }
       />
 
       {/* Bottom Checkout Bar */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.card, borderTopColor: colors.border, bottom: tabBarHeight }]}>
         <View style={styles.bottomTotal}>
           <Text style={[styles.bottomTotalLabel, { color: colors.subtext }]}>Total</Text>
           <Text style={[styles.bottomTotalValue, { color: colors.primary }]}>${finalTotal.toFixed(2)}</Text>
@@ -222,7 +227,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, marginVertical: 10 },
   totalLabel: { fontSize: 16, fontWeight: "bold" },
   totalValue: { fontSize: 20, fontWeight: "bold" },
-  bottomBar: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", padding: 16, gap: 16, borderTopWidth: 1, elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+  bottomBar: { position: "absolute", left: 0, right: 0, flexDirection: "row", padding: 16, gap: 16, borderTopWidth: 1, elevation: 10, shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 8 },
   bottomTotal: { justifyContent: "center" },
   bottomTotalLabel: { fontSize: 12 },
   bottomTotalValue: { fontSize: 20, fontWeight: "bold" },

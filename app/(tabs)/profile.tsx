@@ -16,6 +16,7 @@ export default function Profile() {
   const router = useRouter();
   const { colors } = useTheme();
   const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({ orders: 0, wishlist: 0, reviews: 0, saved: 0 });
 
   const menuItems = [
     { id: "1", icon: "📦", label: "Order History", sublabel: "Track your orders", route: "/(stack)/order-history" },
@@ -34,6 +35,46 @@ export default function Profile() {
     const { data: listener } = supabase.auth.onAuthStateChange(() => fetchUser());
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.id) {
+        setStats({ orders: 0, wishlist: 0, reviews: 0, saved: 0 });
+        return;
+      }
+
+      const [ordersRes, wishlistRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id, total", { count: "exact" })
+          .eq("user_id", user.id),
+        supabase
+          .from("wishlist_items")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+      ]);
+
+      const orderCount = ordersRes.count ?? ordersRes.data?.length ?? 0;
+      const wishlistCount = wishlistRes.count ?? 0;
+
+      // "Saved" here is a placeholder: total spend across orders.
+      // There's currently no discount/savings field in the schema,
+      // so this is NOT a true "amount saved" figure yet.
+      const totalSpend = (ordersRes.data ?? []).reduce(
+        (sum: number, order: any) => sum + (order.total ?? 0),
+        0
+      );
+
+      setStats({
+        orders: orderCount,
+        wishlist: wishlistCount,
+        reviews: 0, // no reviews table yet
+        saved: totalSpend,
+      });
+    };
+
+    fetchStats();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -101,23 +142,23 @@ export default function Profile() {
       {/* Stats */}
       <View style={[styles.statsRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.stat}>
-          <Text style={[styles.statNumber, { color: colors.primary }]}>12</Text>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>{stats.orders}</Text>
           <Text style={[styles.statLabel, { color: colors.subtext }]}>Orders</Text>
         </View>
         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
         <View style={styles.stat}>
-          <Text style={[styles.statNumber, { color: colors.primary }]}>5</Text>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>{stats.wishlist}</Text>
           <Text style={[styles.statLabel, { color: colors.subtext }]}>Wishlist</Text>
         </View>
         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
         <View style={styles.stat}>
-          <Text style={[styles.statNumber, { color: colors.primary }]}>3</Text>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>{stats.reviews}</Text>
           <Text style={[styles.statLabel, { color: colors.subtext }]}>Reviews</Text>
         </View>
         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
         <View style={styles.stat}>
-          <Text style={[styles.statNumber, { color: colors.primary }]}>$240</Text>
-          <Text style={[styles.statLabel, { color: colors.subtext }]}>Saved</Text>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>${stats.saved}</Text>
+          <Text style={[styles.statLabel, { color: colors.subtext }]}>Spent</Text>
         </View>
       </View>
 

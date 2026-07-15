@@ -26,6 +26,9 @@ const paymentMethods = [
   { id: "cod", label: "Cash on Delivery", detail: "Pay when it arrives", icon: "💵" },
 ];
 
+const STANDARD_DELIVERY_FEE = 5;
+const FREE_DELIVERY_THRESHOLD = 50;
+
 export default function Checkout() {
   const router = useRouter();
   const { colors } = useTheme();
@@ -37,7 +40,9 @@ export default function Checkout() {
   const [addressLoading, setAddressLoading] = useState(true);
   const [addressError, setAddressError] = useState<string | null>(null);
 
-  const delivery = 5;
+  const qualifiesForFreeDelivery = total >= FREE_DELIVERY_THRESHOLD;
+  const delivery = qualifiesForFreeDelivery ? 0 : STANDARD_DELIVERY_FEE;
+  const amountToFreeDelivery = Math.max(FREE_DELIVERY_THRESHOLD - total, 0);
   const grandTotal = total + delivery;
 
   const handlePlaceOrder = async () => {
@@ -171,6 +176,21 @@ export default function Checkout() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        {/* Free delivery progress banner */}
+        {!qualifiesForFreeDelivery ? (
+          <View style={[styles.deliveryBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary }]}>
+            <Text style={[styles.deliveryBannerText, { color: colors.text }]}>
+              🚚 Add ${amountToFreeDelivery.toFixed(2)} more to get FREE delivery!
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.deliveryBanner, { backgroundColor: "#43E97B" + "18", borderColor: "#43E97B" }]}>
+            <Text style={[styles.deliveryBannerText, { color: colors.text }]}>
+              🎉 You've unlocked FREE delivery!
+            </Text>
+          </View>
+        )}
+
         {/* Step 0: Cart */}
         {stepIndex === 0 && (
           <View style={styles.section}>
@@ -288,7 +308,11 @@ export default function Checkout() {
             </View>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.subtext }]}>Delivery</Text>
-              <Text style={[styles.summaryValue, { color: colors.text }]}>${delivery}</Text>
+              {qualifiesForFreeDelivery ? (
+                <Text style={[styles.summaryValue, { color: "#43E97B" }]}>FREE</Text>
+              ) : (
+                <Text style={[styles.summaryValue, { color: colors.text }]}>${delivery}</Text>
+              )}
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             <View style={styles.summaryRow}>
@@ -337,6 +361,10 @@ const styles = StyleSheet.create({
   stepLine: { flex: 1, height: 2, marginTop: 13, marginHorizontal: -4 },
 
   body: { paddingHorizontal: 20, paddingBottom: 20 },
+
+  deliveryBanner: { borderRadius: 12, padding: 12, borderWidth: 1, marginBottom: 16 },
+  deliveryBannerText: { fontSize: 13, fontWeight: "600", textAlign: "center" },
+
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
 
