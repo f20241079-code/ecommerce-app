@@ -58,5 +58,9 @@ module.exports = {
     ...appJson.expo.extra,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
+    eas: {
+      ...(appJson.expo.extra && appJson.expo.extra.eas),
+      projectId: 'ff1648c2-227d-4912-aef9-9826649e177e',
+    },
   },
 };
